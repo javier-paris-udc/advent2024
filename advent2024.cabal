@@ -66,3 +66,6 @@ executable day01
     import:           warnings, shared-properties
     main-is:          day01.hs
 
+executable day02
+    import:           warnings, shared-properties
+    main-is:          day02.hs
