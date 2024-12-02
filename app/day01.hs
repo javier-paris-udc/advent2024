@@ -12,18 +12,19 @@ import Text.Parsec.String (Parser)
 
 
 solveP2 :: ([Int], [Int]) -> Int
-solveP2 (l1, l2) = timeIds sl1 sl2
+solveP2 (l1, l2) = timesIds (sort l1) countl2
   where
-    sl1 = sort l1
-    sl2 = sort l2
+    countl2 =
+          sort l2
         & group
         & map (\l -> (head l, length l))
-    timeIds [] _ = 0
-    timeIds _ [] = 0
-    timeIds xl@(x:xs) yl@((y, times) : ys)
-        | x < y = timeIds xs yl
-        | x > y = timeIds xl ys
-        | otherwise = x*times + timeIds xs yl
+
+    timesIds [] _ = 0
+    timesIds _ [] = 0
+    timesIds xl@(x:xs) yl@((y, times) : ys)
+        | x < y = timesIds xs yl
+        | x > y = timesIds xl ys
+        | otherwise = x*times + timesIds xs yl
 
 
 solveP1 :: ([Int], [Int]) -> Int
