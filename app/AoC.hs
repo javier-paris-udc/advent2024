@@ -10,7 +10,8 @@ import Text.Parsec        (char
                           ,Parsec
                           ,runParser
                           ,spaces
-                          ,try, string)
+                          ,string
+                          ,try)
 import Text.Parsec.String (Parser)
 import System.Environment (getArgs, getProgName)
 import Control.Monad      (void)
@@ -78,23 +79,23 @@ parseFromArg parser state = do
             return $ Left $ "Use: "++prog++" input"
 
 
-applyInputSWith :: Parsec String s a
-                -> s
-                -> (a -> b)
-                -> (a -> c)
-                -> (b -> IO ())
-                -> (c -> IO ())
-                -> IO ()
-applyInputSWith parser state solveP1 solveP2 printP1 printP2 =
+applyInputSWith :: Parsec String s a -> s -> (a -> IO ()) -> IO ()
+applyInputSWith parser state f =
     do
         parseRes <- parseFromArg parser state
         case parseRes of
             Left err ->
                 putStrLn err
             Right parsedRes ->
-                do
-                    printP1 $ solveP1 parsedRes
-                    printP2 $ solveP2 parsedRes
+                f parsedRes
+
+
+applyInput1S :: (Show b) => Parsec String s a -> s -> (a -> b) -> IO ()
+applyInput1S parser state solve = applyInputSWith parser state (print . solve)
+
+
+applyInput1 :: (Show b) => Parser a -> (a -> b) -> IO ()
+applyInput1 parser solve = applyInputSWith parser () (print . solve)
 
 
 applyInput :: (Show b, Show c) => Parser a -> (a -> b) -> (a -> c) -> IO ()
@@ -103,4 +104,8 @@ applyInput = flip applyInputS ()
 
 applyInputS :: (Show b, Show c) => Parsec String s a -> s -> (a -> b) -> (a -> c) -> IO ()
 applyInputS parser state solveP1 solveP2 =
-    applyInputSWith parser state solveP1 solveP2 print print
+    applyInputSWith parser state solveAndPrint
+  where
+    solveAndPrint input = do
+        print $ solveP1 input
+        print $ solveP2 input
