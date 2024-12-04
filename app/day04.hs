@@ -3,6 +3,7 @@ module Main where
 import AoC                (applyInput)
 import Data.Array         (Array, (!), bounds, indices, inRange, listArray)
 import Data.Function      ((&))
+import Data.Functor       (($>))
 import Data.List          (uncons)
 import Text.Parsec        (char, choice, many1, newline, sepEndBy1)
 import Text.Parsec.String (Parser)
@@ -18,10 +19,12 @@ solveP2 c =
     & filter (all (\w -> w == [M,A,S] || w == [S,A,M]))
     & length
   where
-    idxs = filter (\i -> c ! i == A) $ indices c
+    idxs = filter ((==A) . (c !)) $ indices c
+
     idxWords (x,y) =
         [[(x-1, y-1), (x, y), (x+1, y+1)]
         ,[(x+1, y-1), (x, y), (x-1, y+1)]]
+
     allWords =
         map idxWords idxs
         & filter (all (all (inRange (bounds c))))
@@ -33,8 +36,6 @@ solveP1 c =
     & filter (== [X,M,A,S])
     & length
   where
-    idxs = indices c
-
     idxWords (x,y) = filter (all (inRange (bounds c)))
         [(, y) <$> [x .. x+3]
         ,(, y) <$> [x, x-1 .. x-3]
@@ -46,22 +47,19 @@ solveP1 c =
         ,(\n -> (x-n, y+n)) <$> [0..3]
         ]
 
-    allWords = concatMap idxWords idxs
+    allWords = concatMap idxWords (indices c)
 
 
 wordSearchP :: Parser Cross
 wordSearchP = do
     rows <- many1 letterP `sepEndBy1` newline
     let nrows = length rows
-        ncols = case uncons rows of Nothing -> undefined; Just (col, _) -> length col
+        ncols = case uncons rows of
+            Nothing -> undefined  -- cannot happen because the list comes from many1
+            Just (col, _) -> length col
     return $ listArray ((0, 0), (nrows - 1, ncols - 1)) (concat rows)
   where
-    letterP =
-        choice [char 'X' *> pure X
-               ,char 'M' *> pure M
-               ,char 'A' *> pure A
-               ,char 'S' *> pure S
-               ]
+    letterP = choice [char 'X' $> X, char 'M' $> M, char 'A' $> A, char 'S' $> S]
 
 
 main :: IO ()
