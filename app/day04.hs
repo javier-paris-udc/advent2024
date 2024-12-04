@@ -3,23 +3,19 @@ module Main where
 import AoC                (applyInput)
 import Data.Array         (Array, (!), bounds, indices, inRange, listArray)
 import Data.Function      ((&))
-import Data.Functor       (($>))
-import Data.List          (uncons)
 import Text.Parsec        (char, choice, many1, newline, sepEndBy1)
 import Text.Parsec.String (Parser)
 
-data Letter = X | M | A | S deriving (Show, Eq)
-
-type Cross = Array (Int, Int) Letter
+type Cross = Array (Int, Int) Char
 
 
 solveP2 :: Cross -> Int
 solveP2 c =
     map (map (map (c !))) allWords
-    & filter (all (\w -> w == [M,A,S] || w == [S,A,M]))
+    & filter (all (\w -> w == "MAS" || w == "SAM"))
     & length
   where
-    idxs = filter ((==A) . (c !)) $ indices c
+    idxs = filter ((=='A') . (c !)) $ indices c
 
     idxWords (x,y) =
         [[(x-1, y-1), (x, y), (x+1, y+1)]
@@ -33,33 +29,35 @@ solveP2 c =
 solveP1 :: Cross -> Int
 solveP1 c =
     map (map (c !)) allWords
-    & filter (== [X,M,A,S])
+    & filter (== "MAS")
     & length
   where
+    idxs = filter ((=='X') . (c !)) $ indices c
+
     idxWords (x,y) = filter (all (inRange (bounds c)))
-        [(, y) <$> [x .. x+3]
-        ,(, y) <$> [x, x-1 .. x-3]
-        ,(x, ) <$> [y .. y+3]
-        ,(x, ) <$> [y, y-1 .. y-3]
-        ,(\n -> (x+n, y+n)) <$> [0..3]
-        ,(\n -> (x-n, y-n)) <$> [0..3]
-        ,(\n -> (x+n, y-n)) <$> [0..3]
-        ,(\n -> (x-n, y+n)) <$> [0..3]
+        [(, y) <$> [x+1 .. x+3]
+        ,(, y) <$> [x-1, x-2, x-3]
+        ,(x, ) <$> [y+1 .. y+3]
+        ,(x, ) <$> [y-1, y-2, y-3]
+        ,(\n -> (x+n, y+n)) <$> [1..3]
+        ,(\n -> (x-n, y-n)) <$> [1..3]
+        ,(\n -> (x+n, y-n)) <$> [1..3]
+        ,(\n -> (x-n, y+n)) <$> [1..3]
         ]
 
-    allWords = concatMap idxWords (indices c)
+    allWords = concatMap idxWords idxs
 
 
 wordSearchP :: Parser Cross
 wordSearchP = do
     rows <- many1 letterP `sepEndBy1` newline
     let nrows = length rows
-        ncols = case uncons rows of
-            Nothing -> undefined  -- cannot happen because the list comes from many1
-            Just (col, _) -> length col
+        ncols = case rows of
+            []    -> undefined  -- cannot happen because the list comes from many1
+            col:_ -> length col
     return $ listArray ((0, 0), (nrows - 1, ncols - 1)) (concat rows)
   where
-    letterP = choice [char 'X' $> X, char 'M' $> M, char 'A' $> A, char 'S' $> S]
+    letterP = choice [char 'X', char 'M', char 'A', char 'S']
 
 
 main :: IO ()
