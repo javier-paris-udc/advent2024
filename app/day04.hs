@@ -3,7 +3,7 @@ module Main where
 import AoC                (applyInput)
 import Data.Array         (Array, (!), bounds, indices, inRange, listArray)
 import Data.Function      ((&))
-import Text.Parsec        (char, choice, many1, newline, sepEndBy1)
+import Text.Parsec        (many1, newline, oneOf, sepEndBy1)
 import Text.Parsec.String (Parser)
 
 type Cross = Array (Int, Int) Char
@@ -50,14 +50,12 @@ solveP1 c =
 
 wordSearchP :: Parser Cross
 wordSearchP = do
-    rows <- many1 letterP `sepEndBy1` newline
+    rows <- many1 (oneOf "XMAS") `sepEndBy1` newline
     let nrows = length rows
         ncols = case rows of
             []    -> undefined  -- cannot happen because the list comes from many1
             col:_ -> length col
     return $ listArray ((0, 0), (nrows - 1, ncols - 1)) (concat rows)
-  where
-    letterP = choice [char 'X', char 'M', char 'A', char 'S']
 
 
 main :: IO ()
