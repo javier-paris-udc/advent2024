@@ -78,3 +78,9 @@ executable day04
     import:           warnings, shared-properties
     build-depends:    array >= 0.5
     main-is:          day04.hs
+
+executable day05
+    import:           warnings, shared-properties
+    build-depends:    unordered-containers >= 0.2,
+                      hashable >= 1.5
+    main-is:          day05.hs
