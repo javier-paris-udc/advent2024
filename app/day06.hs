@@ -6,7 +6,6 @@ import           AoC                         (applyInput)
 import           Control.Parallel.Strategies (parList, rseq, using)
 import           Data.Array                  (Array, (!), (//), array, bounds, inRange)
 import           Data.Bifunctor              (second)
-import           Data.Foldable               (find)
 import           Data.Function               ((&))
 import           Data.Hashable               (Hashable)
 import qualified Data.HashSet                as Set
@@ -20,11 +19,11 @@ data Dir = N | E | S | W deriving (Show, Eq, Generic)
 
 instance Hashable Dir
 
-dirFun :: Dir -> Coord -> Coord
-dirFun N (x, y) = (x-1, y)
-dirFun S (x, y) = (x+1, y)
-dirFun W (x, y) = (x, y-1)
-dirFun E (x, y) = (x, y+1)
+move :: Dir -> Coord -> Coord
+move N (x, y) = (x-1, y)
+move S (x, y) = (x+1, y)
+move W (x, y) = (x, y-1)
+move E (x, y) = (x, y+1)
 
 
 rotate :: Dir -> Dir
@@ -45,7 +44,7 @@ isLoop pos dir board visited
         else isLoop newPos dir board visited
     | otherwise = False
   where
-      newPos = dirFun dir pos
+      newPos = move dir pos
 
 
 walk :: Coord -> Dir -> Board -> Set.HashSet Coord -> Set.HashSet Coord
@@ -55,7 +54,7 @@ walk pos dir board visited
         else walk newPos dir board (Set.insert newPos visited)
     | otherwise = visited
   where
-    newPos = dirFun dir pos
+    newPos = move dir pos
 
 
 solveP2 :: (Coord, Dir, Board) -> Int
@@ -75,14 +74,16 @@ boardP :: Parser (Coord, Dir, Board)
 boardP = do
     rows <- many1 (oneOf ".#^v><") `sepEndBy1` newline
     let numbered = [((x, y), v) | (x, r) <- zip [0..] rows, (y, v) <- zip [0..] r]
-        board = map (second (== '#')) numbered
-        sizex = maximum $ map (fst . fst) board
-        sizey = maximum $ map (snd . fst) board
-    case find ((`elem` "^v><"). snd) numbered of
-        Nothing ->
-            fail "No guard"
-        Just (guardPos, guardDir) ->
+        board    = map (second (== '#')) numbered
+        sizex    = maximum $ map (fst . fst) board
+        sizey    = maximum $ map (snd . fst) board
+    case filter ((`elem` "^v><"). snd) numbered of
+        [(guardPos, guardDir)] ->
             return (guardPos, charToDir guardDir, array ((0, 0), (sizex, sizey)) board)
+        [] ->
+            fail "No guard"
+        _ ->
+            fail "There are several guards"
   where
     charToDir c = case c of
         '^' -> N
