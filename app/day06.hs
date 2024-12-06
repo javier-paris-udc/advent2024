@@ -48,12 +48,12 @@ isLoop pos dir board visited
       newPos = dirFun dir pos
 
 
-walk :: Coord -> Dir -> Board -> Set.HashSet (Coord, Dir) -> Set.HashSet Coord
+walk :: Coord -> Dir -> Board -> Set.HashSet Coord -> Set.HashSet Coord
 walk pos dir board visited
     | bounds board `inRange` newPos =
         if board ! newPos then walk pos (rotate dir) board visited
-        else walk newPos dir board (Set.insert (newPos, dir) visited)
-    | otherwise = Set.map fst visited
+        else walk newPos dir board (Set.insert newPos visited)
+    | otherwise = visited
   where
     newPos = dirFun dir pos
 
@@ -64,11 +64,11 @@ solveP2 (pos, dir, board) =
     & filter id
     & length
   where
-    obstaclePositions = Set.toList $ Set.delete pos $ walk pos dir board (Set.singleton (pos, dir))
+    obstaclePositions = Set.toList $ Set.delete pos $ walk pos dir board (Set.singleton pos)
 
 
 solveP1 :: (Coord, Dir, Board) -> Int
-solveP1 (pos, dir, board) = Set.size $ walk pos dir board (Set.singleton (pos, dir))
+solveP1 (pos, dir, board) = Set.size $ walk pos dir board (Set.singleton pos)
 
 
 boardP :: Parser (Coord, Dir, Board)
