@@ -89,5 +89,7 @@ executable day06
     import:           warnings, shared-properties
     build-depends:    array >= 0.5,
                       unordered-containers >= 0.2,
-                      hashable >= 1.5
+                      hashable >= 1.5,
+                      parallel >= 3.2
+    ghc-options:      -threaded
     main-is:          day06.hs

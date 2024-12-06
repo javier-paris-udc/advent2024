@@ -2,15 +2,17 @@
 module Main where
 
 
-import GHC.Generics (Generic)
-import AoC (applyInput)
-import Data.Array (Array, array, inRange, bounds, (!), (//))
-import Text.Parsec.String (Parser)
-import Data.Bifunctor (second)
-import Data.Foldable (find)
-import Text.Parsec (many1, newline, oneOf, sepEndBy1)
-import qualified Data.HashSet as Set
-import Data.Hashable (Hashable)
+import           AoC                         (applyInput)
+import           Control.Parallel.Strategies (parList, rseq, using)
+import           Data.Array                  (Array, (!), (//), array, bounds, inRange)
+import           Data.Bifunctor              (second)
+import           Data.Foldable               (find)
+import           Data.Function               ((&))
+import           Data.Hashable               (Hashable)
+import qualified Data.HashSet                as Set
+import           GHC.Generics                (Generic)
+import           Text.Parsec                 (many1, newline, oneOf, sepEndBy1)
+import           Text.Parsec.String          (Parser)
 
 type Coord = (Int, Int)
 type Board = Array Coord Bool
@@ -58,7 +60,9 @@ walk pos dir board visited
 
 solveP2 :: (Coord, Dir, Board) -> Int
 solveP2 (pos, dir, board) =
-    length $ filter (\p -> isLoop pos dir (board // [(p, True)]) Set.empty) obstaclePositions
+    (map (\p -> isLoop pos dir (board // [(p, True)]) Set.empty) obstaclePositions `using` parList rseq)
+    & filter id
+    & length
   where
     obstaclePositions = Set.toList $ Set.delete pos $ walk pos dir board (Set.singleton (pos, dir))
 
