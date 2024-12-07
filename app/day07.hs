@@ -17,9 +17,10 @@ a .+. b = a * 10 ^ digits b + b
 
 solvableEq :: [Int -> Int -> Int] -> Int -> [Int] -> Bool
 solvableEq ops x l = case l of
-    []       -> False
-    [y]      -> x == y
-    y1:y2:ys -> any (\op -> solvableEq ops x (y1 `op` y2 : ys)) ops
+    []          -> False
+    [y]         -> x == y
+    y:_ | y > x -> False
+    y1:y2:ys    -> any (\op -> solvableEq ops x (y1 `op` y2 : ys)) ops
 
 
 solve :: [Int -> Int -> Int] -> [(Int, [Int])] -> Int
