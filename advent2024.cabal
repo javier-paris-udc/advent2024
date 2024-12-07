@@ -93,3 +93,7 @@ executable day06
                       parallel >= 3.2
     ghc-options:      -threaded
     main-is:          day06.hs
+
+executable day07
+    import:           warnings, shared-properties
+    main-is:          day07.hs
