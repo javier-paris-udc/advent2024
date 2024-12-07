@@ -1,6 +1,6 @@
 module Main where
 
-import AoC                (applyInput, blankP, intP)
+import AoC                (applyInput, blanksP, intP)
 import Text.Parsec        (char, sepEndBy1, spaces)
 import Text.Parsec.String (Parser)
 
@@ -11,8 +11,8 @@ digits x
     | otherwise  = 1 + digits (x `div` 10)
 
 
-cat :: Int -> Int -> Int
-cat a b = a * 10 ^ digits b + b
+(.+.) :: Int -> Int -> Int
+a .+. b = a * 10 ^ digits b + b
 
 
 solvableEq :: [Int -> Int -> Int] -> Int -> [Int] -> Bool
@@ -30,10 +30,10 @@ equationsP :: Parser [(Int, [Int])]
 equationsP = eqP `sepEndBy1` spaces
   where
     eqP = do
-        target <- intP <* char ':' <* spaces
-        vals <- intP `sepEndBy1` blankP
+        target <- intP <* char ':' <* blanksP
+        vals   <- intP `sepEndBy1` blanksP
         return (target, vals)
 
 
 main :: IO ()
-main = applyInput equationsP (solve [(+), (*)]) (solve [(+), (*), cat])
+main = applyInput equationsP (solve [(+), (*)]) (solve [(+), (*), (.+.)])
