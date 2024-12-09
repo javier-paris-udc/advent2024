@@ -1,96 +1,72 @@
 module Main where
 
-import           AoC           (applyInput)
-import           Data.Sequence (Seq, Seq(Empty, (:<|), (:|>)))
-import qualified Data.Sequence as Seq
-import           Text.Parsec   (digit, many1)
+import           AoC                (applyInput)
+import           Data.Foldable      (toList)
+import           Data.Function      ((&), on)
 import qualified Data.IntMap.Strict as Map
-import Data.List (sortOn, (\\), sortBy)
-import qualified Data.IntSet as Set
-import Data.Maybe (isJust)
-import Data.Function (on)
+import qualified Data.IntSet        as Set
+import           Data.List          (sortBy)
+import           Data.Maybe         (fromJust, isJust)
+import           Data.Sequence      (Seq, Seq(Empty, (:<|), (:|>)))
+import qualified Data.Sequence      as Seq
+import           Text.Parsec        (digit, many1)
 
 
 data Extent = Extent { len :: Int, fileId :: Maybe Int } deriving (Show, Eq)
 
 
-showExtents :: Seq Extent -> String
-showExtents Empty = ""
-showExtents (Extent { len = eLen, fileId = i } :<| rest) = case i of
-    Nothing -> replicate eLen '.'  ++ showExtents rest
-    Just n  -> concat (replicate eLen (show n)) ++ showExtents rest
+isFile, isEmpty :: Extent -> Bool
+isFile = isJust . fileId
+isEmpty = not . isFile
 
 
-checkSum :: Seq Extent -> Int
+showExtents :: Foldable f => f Extent -> String
+showExtents = foldr (\e rest -> showExtent e ++ rest ) ""
+  where
+    showExtent (Extent { len = eLen, fileId = i }) = case i of
+        Nothing -> replicate eLen '.'
+        Just n  -> concat (replicate eLen (show n))
+
+
+checkSum :: [Extent] -> Int
 checkSum = doSum 0
   where
-    doSum _ Empty =
+    doSum _ [] =
         0
-    doSum n (Extent { len = eLen, fileId = Nothing } :<| rest) =
+    doSum n (Extent { len = eLen, fileId = Nothing } : rest) =
         doSum (n+eLen) rest
-    doSum n (Extent { len = eLen, fileId = Just i} :<| rest) =
+    doSum n (Extent { len = eLen, fileId = Just i} : rest) =
         i * sum [n .. n + eLen - 1] + doSum (n + eLen) rest
 
 
-insert :: Extent -> Seq Extent -> Maybe (Seq Extent)
-insert eIns@(Extent { len = eLen }) s = case s of
-    Empty ->
-        Nothing
-    e@Extent { fileId = Just _ }:<| rest ->
-        (e :<|) <$> insert eIns rest
-    e@Extent { len = eLenFree } :<| rest
-        | eLenFree > eLen -> Just $ eIns :<| e { len = eLenFree - eLen } :<| rest
-        | eLenFree == eLen -> Just $ eIns :<| rest
-        | otherwise -> (e :<|) <$> insert eIns rest
-
-
-defragP2 :: Seq Extent -> Seq Extent
-defragP2 s = case s of
-    Empty ->
-        Empty
-    e@Extent { fileId = Just _}:<| rest ->
-        e :<| defragP2 rest
-    rest :|> e@Extent {fileId = Nothing } ->
-        defragP2 rest :|> e
-    rest :|> e ->
-        case insert e rest of
-            Nothing -> defragP2 rest :|> e
-            Just nRest -> defragP2 nRest :|> e { fileId = Nothing }
-
-
-compressP2 :: [Extent] -> Seq Extent
-compressP2 l = doCompress Empty Set.empty l prioL
+defragP2 :: [Extent] -> [Extent]
+defragP2 l = doDefrag Set.empty l prioL
   where
-    prioL = Map.map (sortBy (flip (compare `on` fileId))) $ foldr insertAll Map.empty (filter (isJust . fileId) l)
-    insertAll e m = foldr (\sz mAcc -> Map.insertWith (++) sz [e] mAcc) m [len e .. 9]
+    prioL = filter isFile l
+          & foldr insertInLengths Map.empty
+          & Map.map (sortBy (flip compare `on` fileId))
 
-    doCompress s done eList pending =
+    insertInLengths e m = foldr (\sz mAcc -> Map.insertWith (++) sz [e] mAcc) m [len e .. 9]
+
+    doDefrag done eList pending =
         case eList of
-            [] -> s
+            [] -> []
             e@Extent { fileId = Just i } : rest
-                | i `Set.member` done -> doCompress s done (e { fileId = Nothing } : rest) pending
-                | otherwise -> doCompress (s :|> e) done rest (del e pending)
+                | i `Set.member` done ->
+                    doDefrag done (e { fileId = Nothing } : rest) pending
+                | otherwise ->
+                    e : doDefrag (Set.insert i done) rest pending
             e@Extent { len = eLen, fileId = Nothing } : rest ->
-                case pending Map.! eLen of
-                    [] -> doCompress (s :|> e) done rest pending
-                    e2@Extent { len = eLen2, fileId = Just i } : _
-                        | eLen2 < eLen ->
-                            doCompress
-                                (s :|> e2)
-                                (Set.insert i done)
-                                (e { len = eLen - eLen2 } : rest)
-                                (del2 e2 pending)
-                        | otherwise ->
-                            doCompress
-                                (s :|> e2)
-                                (Set.insert i done)
-                                rest
-                                (del2 e2 pending)
+                case dropWhile ((`Set.member` done) . fromJust . fileId) (pending Map.! eLen) of
+                    [] ->
+                        e : doDefrag done rest (Map.insert eLen [] pending)
+                    e2@Extent { len = eLen2, fileId = Just i } : eLenPending ->
+                        let newEList =
+                                if eLen2 < eLen
+                                then e { len = eLen - eLen2 } : rest
+                                else rest
+                        in e2 : doDefrag (Set.insert i done) newEList (Map.insert eLen eLenPending pending)
                     _ -> undefined
-
-del e pending = foldr (\extLen m -> Map.adjust (\\ [e]) extLen m) pending [len e .. 9]
-
-del2 e pending = foldr (\extLen m -> Map.adjust (\\ [e]) extLen m) pending [len e .. 9]
 
 
 defragP1 :: Seq Extent -> Seq Extent
@@ -112,23 +88,22 @@ defragP1 s = case s of
             eb { len = eLenF } :<| defragP1 (rest :|> eb { len = eLenB - eLenF })
 
 
-toDiskSeq :: [Int] -> Seq Extent
-toDiskSeq = Seq.fromList . filter ((/=0) . len) . toExtents [0..]
---  where
-toExtents (i:_) [n] = [Extent { len = n, fileId = Just i }]
-toExtents (i:ids) (nFile:nFree:rest) =
+toDiskSeq :: [Int] -> [Extent]
+toDiskSeq = filter ((/=0) . len) . toExtents [0..]
+  where
+    toExtents (i:_) [n] = [Extent { len = n, fileId = Just i }]
+    toExtents (i:ids) (nFile:nFree:rest) =
         Extent { len = nFile, fileId = Just i }
-    :Extent { len = nFree, fileId = Nothing }
-    :toExtents ids rest
-toExtents _ _ = []
+        :Extent { len = nFree, fileId = Nothing }
+        :toExtents ids rest
+    toExtents _ _ = []
 
 
 solveP2 :: [Int] -> Int
-solveP2 = --checkSum . defragP2 . toDiskSeq
-  checkSum . compressP2 . filter ((/=0) . len) . toExtents [0 .. ]
+solveP2 = checkSum . defragP2 . toDiskSeq
 
 solveP1 :: [Int] -> Int
-solveP1 = checkSum . defragP1 . toDiskSeq
+solveP1 = checkSum . toList . defragP1 . Seq.fromList . toDiskSeq
 
 
 main :: IO ()
