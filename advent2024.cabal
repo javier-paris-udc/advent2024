@@ -101,3 +101,8 @@ executable day07
 executable day08
     import:           warnings, shared-properties
     main-is:          day08.hs
+
+executable day09
+    import:           warnings, shared-properties
+    build-depends:    containers >= 0.7
+    main-is:          day09.hs
