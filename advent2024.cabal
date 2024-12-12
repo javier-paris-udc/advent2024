@@ -51,9 +51,6 @@ extra-doc-files:    CHANGELOG.md
 -- Extra source files to be distributed with the package, such as examples, or a tutorial module.
 -- extra-source-files:
 
-common warnings
-    ghc-options: -Wall
-
 common shared-properties
     build-depends:  base >=4.19.1.0,
                     parsec >=3.1
@@ -63,30 +60,30 @@ common shared-properties
     default-language: GHC2021
 
 executable day01
-    import:           warnings, shared-properties
+    import:           shared-properties
     main-is:          day01.hs
 
 executable day02
-    import:           warnings, shared-properties
+    import:           shared-properties
     main-is:          day02.hs
 
 executable day03
-    import:           warnings, shared-properties
+    import:           shared-properties
     main-is:          day03.hs
 
 executable day04
-    import:           warnings, shared-properties
+    import:           shared-properties
     build-depends:    array >= 0.5
     main-is:          day04.hs
 
 executable day05
-    import:           warnings, shared-properties
+    import:           shared-properties
     build-depends:    unordered-containers >= 0.2,
                       hashable >= 1.5
     main-is:          day05.hs
 
 executable day06
-    import:           warnings, shared-properties
+    import:           shared-properties
     build-depends:    array >= 0.5,
                       unordered-containers >= 0.2,
                       hashable >= 1.5,
@@ -95,24 +92,30 @@ executable day06
     main-is:          day06.hs
 
 executable day07
-    import:           warnings, shared-properties
+    import:           shared-properties
     main-is:          day07.hs
 
 executable day08
-    import:           warnings, shared-properties
+    import:           shared-properties
     main-is:          day08.hs
 
 executable day09
-    import:           warnings, shared-properties
+    import:           shared-properties
     build-depends:    containers >= 0.7
     main-is:          day09.hs
 
 executable day10
-    import:           warnings, shared-properties
+    import:           shared-properties
     build-depends:    array >= 0.5
     main-is:          day10.hs
 
 executable day11
-    import:           warnings, shared-properties
+    import:           shared-properties
     build-depends:    containers >= 0.7
     main-is:          day11.hs
+
+executable day12
+    import:           shared-properties
+    build-depends:    array >= 0.5,
+                      containers >= 0.7
+    main-is:          day12.hs
