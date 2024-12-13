@@ -1,11 +1,11 @@
 module Main where
 
-import AoC (applyInput, blanksP, intP)
+import AoC                (applyInput, blanksP, intP)
+import Data.Bifunctor     (bimap)
+import Data.Maybe         (mapMaybe)
+import Data.Ratio         ((%), denominator, numerator)
+import Text.Parsec        (sepEndBy1, spaces, string)
 import Text.Parsec.String (Parser)
-import Text.Parsec (sepEndBy1, spaces, string)
-import Data.Ratio (denominator, (%), numerator)
-import Data.Maybe (mapMaybe)
-import Data.Bifunctor (bimap)
 
 data Equation = Equation { a :: Rational, b :: Rational, prize :: Rational } deriving (Show, Eq)
 type Machine = (Equation, Equation)
@@ -25,7 +25,7 @@ solveMachine (eq1, eq2)
 
 
 incPrize :: Equation -> Equation
-incPrize m = m { prize = prize m + 10000000000000}
+incPrize m = m { prize = prize m + 10000000000000 }
 
 
 solve :: [Machine] -> Integer
