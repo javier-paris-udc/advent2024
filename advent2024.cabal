@@ -126,5 +126,15 @@ executable day13
 
 executable day14
     import:           shared-properties
-    build-depends:    containers >= 0.7
     main-is:          day14.hs
+
+executable day15
+    import:           shared-properties
+    build-depends:    containers >= 0.7
+    main-is:          day15.hs
+
+executable day16
+    import:           shared-properties
+    build-depends:    array >= 0.5,
+                      containers >= 0.7
+    main-is:          day16.hs
