@@ -138,3 +138,9 @@ executable day16
     build-depends:    array >= 0.5,
                       containers >= 0.7
     main-is:          day16.hs
+
+executable day17
+    import:           shared-properties
+    build-depends:    transformers >= 0.6,
+                      containers >= 0.7
+    main-is:          day17.hs
