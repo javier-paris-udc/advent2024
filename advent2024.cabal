@@ -154,3 +154,9 @@ executable day19
     import:           shared-properties
     build-depends:    MemoTrie >= 0.6
     main-is:          day19.hs
+
+executable day20
+    import:           shared-properties
+    build-depends:    array >= 0.5,
+                      containers >= 0.7
+    main-is:          day20.hs
