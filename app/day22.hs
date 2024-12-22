@@ -30,7 +30,7 @@ applyN n f !x = applyN (n - 1) f (f x)
 
 solveP2 :: [Int] -> Int
 solveP2 = map (secretList >>> map (`mod` 10) >>> sequences)
-      >>> foldl1 (M.unionWith (+))
+      >>> M.unionsWith (+)
       >>> maximum
   where
     secretList = unfoldr (\x -> Just (x, nextSecret x))
@@ -39,7 +39,7 @@ solveP2 = map (secretList >>> map (`mod` 10) >>> sequences)
     changeList = zipWith subtract <*> drop 1
 
     sequences secrets = zip (rolling4 (changeList secrets)) (drop 4 secrets)
-                      & foldl' (\m (chSeq, price) -> M.insertWith (\_ x -> x) chSeq price m) M.empty
+                      & M.fromListWith (\_ x -> x)
 
 
 solveP1 :: [Int] -> Int
