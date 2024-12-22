@@ -4,7 +4,6 @@ import           AoC             (applyInput, intP)
 import           Control.Arrow   ((>>>))
 import           Data.Bits       (xor)
 import           Data.Function   ((&))
-import           Data.List       (unfoldr)
 import qualified Data.Map.Strict as M
 import           Text.Parsec     (sepEndBy1, spaces)
 
@@ -29,12 +28,11 @@ applyN n f !x = applyN (n - 1) f (f x)
 
 
 solveP2 :: [Int] -> Int
-solveP2 = map (secretList >>> map (`mod` 10) >>> sequences)
+solveP2 = map (secretList >>> sequences)
       >>> M.unionsWith (+)
       >>> maximum
   where
-    secretList = unfoldr (\x -> Just (x, nextSecret x))
-             >>> take 2001
+    secretList = iterate nextSecret >>> take 2001 >>> map (`mod` 10)
 
     changeList = zipWith subtract <*> drop 1
 
