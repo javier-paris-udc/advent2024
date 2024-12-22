@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 module Main where
 
 import           AoC             (applyInput, intP)
@@ -16,9 +15,9 @@ rolling4 _ = []
 
 
 nextSecret :: Int -> Int
-nextSecret = mix <*> (* 64) >>> prune
+nextSecret = mix <*> (* 64)     >>> prune
          >>> mix <*> (`div` 32) >>> prune
-         >>> mix <*> (* 2048) >>> prune
+         >>> mix <*> (* 2048)   >>> prune
   where
     mix = xor
     prune = (`mod` 16777216)
@@ -34,11 +33,8 @@ solveP2 = map (secretList >>> map (`mod` 10) >>> sequences)
       >>> foldl1 (M.unionWith (+))
       >>> maximum
   where
-    secretList =
-        (0 :: Int, ) >>>
-        unfoldr (\case (n, x)
-                        | n > 2000  -> Nothing
-                        | otherwise -> Just (x, (n + 1, nextSecret x)))
+    secretList = unfoldr (\x -> Just (x, nextSecret x))
+             >>> take 2001
 
     changeList = zipWith subtract <*> drop 1
 
