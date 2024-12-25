@@ -175,3 +175,14 @@ executable day23
     import:           shared-properties
     build-depends:    containers >= 0.7
     main-is:          day23.hs
+
+executable day24
+    import:           shared-properties
+    build-depends:    containers >= 0.7,
+                      transformers >= 0.6,
+                      QuickCheck >= 2.15
+    main-is:          day24.hs
+
+executable day25
+    import:           shared-properties
+    main-is:          day25.hs
