@@ -11,7 +11,7 @@ import Text.Parsec.String (Parser)
 solve :: ([[Int]], [[Int]]) -> IO ()
 solve (locks, keys) =
       liftA2 (,) locks keys
-    & filter (\(k, l) -> all ((<6) . uncurry (+)) $ zip k l)
+    & filter (\(k, l) -> all (<6) $ zipWith (+) k l)
     & length
     & print
 
