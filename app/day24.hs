@@ -20,15 +20,9 @@ import           Test.QuickCheck                  (Args (chatty)
                                                   ,within)
 
 
-data Op = And | Or | Xor deriving (Show, Eq)
-data Gate = Val Bool | Expr Op String String deriving (Show, Eq)
+type Op = Bool -> Bool -> Bool
+data Gate = Val Bool | Expr Op String String
 type Circuit = Map.Map String Gate
-
-
-opFun :: Op -> Bool -> Bool -> Bool
-opFun And = (&&)
-opFun Or  = (||)
-opFun Xor = (/=)
 
 
 eval :: String -> State Circuit Bool
@@ -40,7 +34,7 @@ eval var = do
             val1 <- eval var1
             val2 <- eval var2
 
-            let val = opFun op val1 val2
+            let val = op val1 val2
             modify' (Map.insert var (Val val))
 
             pure val
@@ -151,9 +145,9 @@ circuitP = liftA2 (++) (valP `sepEndBy1` newline) (spaces >> gateP `sepEndBy1` s
 
     idP = many1 alphaNum
 
-    opP = choice [string "AND" $> And
-                 ,string "OR"  $> Or
-                 ,string "XOR" $> Xor
+    opP = choice [string "AND" $> (&&)
+                 ,string "OR"  $> (||)
+                 ,string "XOR" $> (/=)
                  ]
 
 
